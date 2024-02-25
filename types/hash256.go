@@ -43,7 +43,7 @@ func (h *Hash256) ToHexString() string {
 
 func Hash256FromHexString(s string) (*Hash256, error) {
 	if len(s) != HASH256_HEX_NUM_NYBBLES {
-		return nil, fmt.Errorf("invalid format: %s", s)
+		return nil, fmt.Errorf("incorrect hash length: %s", s)
 	}
 
 	rv := &Hash256{}
@@ -60,10 +60,10 @@ func Hash256FromHexString(s string) (*Hash256, error) {
 }
 
 func (h *Hash256) HammingNorm16(h2 int) int {
-	return h.BitCount(h2 & 0xFFFF)
+	return BitCount(h2 & 0xFFFF)
 }
 
-func (h *Hash256) BitCount(x int) int {
+func BitCount(x int) int {
 	x -= (x >> 1) & 0x55555555
 	x = ((x >> 2) & 0x33333333) + (x & 0x33333333)
 	x = ((x >> 4) + x) & 0x0F0F0F0F
@@ -147,7 +147,7 @@ func (h *Hash256) BitwiseOR(that *Hash256) Hash256 {
 func (h *Hash256) BitwiseNOT() Hash256 {
 	rv := Hash256{}
 	for i := 0; i < HASH256_NUM_SLOTS; i++ {
-		rv.W[i] = ((^h.W[i]) & 0xFFFF)
+		rv.W[i] = (int((^h.W[i])) & 0xFFFF)
 	}
 	return rv
 }
