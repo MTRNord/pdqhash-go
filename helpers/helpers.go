@@ -17,9 +17,9 @@ func Torben(m [][]float64, numRows, numCols int) float64 {
 	equal := 0
 	min := m[0][0]
 	max := m[0][0]
-	guess := 0.0
-	maxltguess := 0.0
-	mingtguess := 0.0
+	guess := float64(0.0)
+	maxltguess := float64(0.0)
+	mingtguess := float64(0.0)
 	for i := 0; i < numRows; i++ {
 		for j := 0; j < numCols; j++ {
 			v := m[i][j]

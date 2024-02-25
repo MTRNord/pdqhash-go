@@ -1,7 +1,6 @@
 package pdq
 
 import (
-	"log"
 	"testing"
 
 	"github.com/MTRNord/pdqhash-go/types"
@@ -120,7 +119,6 @@ func TestPDQHasher(t *testing.T) {
 		computedHash := hash.Hash
 
 		hammingDistance := computedHash.HammingDistance(expectedHashObj)
-		log.Printf("Image: %s Hamming distance: %d\n", imagePath, hammingDistance)
-		assert.True(t, hammingDistance <= hammingTolerance)
+		assert.LessOrEqualf(t, hammingDistance, hammingTolerance, "Hamming distance is too high: %s", imagePath)
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime/pprof"
 
 	pdq "github.com/MTRNord/pdqhash-go"
 	"github.com/MTRNord/pdqhash-go/types"
@@ -14,7 +15,7 @@ import (
 
 // This is an example. It is not meant to be run in prod.
 
-func processFile(filename string, detailed bool) {
+func processFolder(filename string, detailed bool) {
 	pdqhasher := pdq.NewPDQHasher()
 
 	numPDQHash := 0
@@ -49,22 +50,40 @@ func processFile(filename string, detailed bool) {
 	})
 }
 
+func processFile(filename string, detailed bool) {
+	pdqhasher := pdq.NewPDQHasher()
+
+	hashAndQuality := pdqhasher.FromFile(filename)
+	delta := 0
+	if detailed {
+		log.Printf("hash=%s,norm=%d,delta=%d,quality=%d,filename=%s", hashAndQuality.Hash.String(), hashAndQuality.Hash.HammingNorm(), delta, hashAndQuality.Quality, filename)
+	} else {
+		log.Printf("%s,%d,%s", hashAndQuality.Hash.String(), hashAndQuality.Quality, filename)
+	}
+}
+
 func main() {
 	var folder string
 	var detailedOutput bool
 
 	flag.StringVar(&folder, "folder", "", "Folder to scan")
 	flag.BoolVar(&detailedOutput, "detailed", false, "Detailed output")
+	var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 
 	// Check if folder exists and is a folder
 	fileInfo, err := os.Stat(folder)
 	if err != nil {
 		log.Fatal(err)
-	}
-	if !fileInfo.IsDir() {
-		log.Fatalf("'%s' is not a folder", folder)
 	}
 
 	vips.LoggingSettings(nil, vips.LogLevelMessage)
@@ -78,6 +97,9 @@ func main() {
 		CollectStats:     false,
 	})
 	defer vips.Shutdown()
-
-	processFile(folder, detailedOutput)
+	if !fileInfo.IsDir() {
+		processFile(folder, detailedOutput)
+	} else {
+		processFolder(folder, detailedOutput)
+	}
 }

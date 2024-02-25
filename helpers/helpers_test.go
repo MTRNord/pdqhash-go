@@ -17,5 +17,5 @@ func TestTorben(t *testing.T) {
 		}
 	}
 
-	assert.Equal(t, 1.07, Torben(m, numRows, numCols), "The Torben function should produce 1.07 for 3 rows and 8 cols")
+	assert.Equal(t, float64(1.07), Torben(m, numRows, numCols), "The Torben function should produce 1.07 for 3 rows and 8 cols")
 }

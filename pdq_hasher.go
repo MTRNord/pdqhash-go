@@ -4,6 +4,7 @@ package pdq
 
 import (
 	"log"
+
 	"math"
 
 	"github.com/MTRNord/pdqhash-go/helpers"
@@ -11,7 +12,6 @@ import (
 	"github.com/davidbyttow/govips/v2/vips"
 
 	_ "image/jpeg"
-	_ "image/png"
 )
 
 // From Wikipedia: standard RGB to luminance (the 'Y' in 'YUV').
@@ -88,9 +88,9 @@ func NewPDQHasher() *PDQHasher {
 
 func ComputeDCTMatrix() [][]float64 {
 	d := make([][]float64, 16)
-	for i := 0; i < 16; i++ {
+	for i := 0; i < len(d); i++ {
 		di := make([]float64, 64)
-		for j := 0; j < 64; j++ {
+		for j := 0; j < len(di); j++ {
 			di[j] = DCT_MATRIX_SCALE_FACTOR() * math.Cos((math.Pi/2.0/64.0)*(float64(i)+1.0)*(2.0*float64(j)+1.0))
 		}
 		d[i] = di
@@ -121,7 +121,7 @@ func (p *PDQHasher) FromFile(filename string) HashAndQuality {
 	}
 
 	// resizing the image proportionally to max 512px width and max 512px height
-	err = image.Thumbnail(512, 512, vips.InterestingNone)
+	err = image.ThumbnailWithSize(512, 512, vips.InterestingNone, vips.SizeDown)
 	if err != nil {
 		log.Fatalf("Error resizing image: %v", err)
 	}
@@ -154,15 +154,17 @@ func (p *PDQHasher) fillFloatLumaFromBufferImage(image *vips.ImageRef, luma *[]f
 	if err != nil {
 		log.Fatalf("Error converting to RGB: %v", err)
 	}
-	goImage, err := image.ToImage(nil)
-	if err != nil {
-		log.Fatalf("Error converting to Go image: %v", err)
-	}
 
 	for i := 0; i < numRows; i++ {
 		for j := 0; j < numCols; j++ {
-			colorArray := goImage.At(j, i)
-			r, g, b, _ := colorArray.RGBA()
+			colorArray, err := image.GetPoint(j, i)
+			if err != nil {
+				log.Fatalf("Error getting pixel: %v", err)
+			}
+			r := colorArray[0]
+			g := colorArray[1]
+			b := colorArray[2]
+			log.Println(r, g, b)
 			(*luma)[i*numCols+j] = LUMA_FROM_R_COEFF*float64(r) + LUMA_FROM_G_COEFF*float64(g) + LUMA_FROM_B_COEFF*float64(b)
 		}
 	}
@@ -273,9 +275,9 @@ func (p *PDQHasher) pdqHash256esFromFloatLuma(fullBuffer1, fullBuffer2 []float64
 // numRows x numCols in row-major order
 func (p *PDQHasher) decimateFloat(in *[]float64, inNumRows, inNumCols int, out *[][]float64) {
 	for i := 0; i < 64; i++ {
-		ini := int(((float64(i) + 0.5) * float64(inNumRows)) / 64)
+		ini := int(((float64(i) + 0.5) * float64(inNumRows)) / 64.0)
 		for j := 0; j < 64; j++ {
-			inj := int(((float64(j) + 0.5) * float64(inNumCols)) / 64)
+			inj := int(((float64(j) + 0.5) * float64(inNumCols)) / 64.0)
 			(*out)[i][j] = (*in)[ini*inNumCols+inj]
 		}
 	}
@@ -293,7 +295,7 @@ func (p *PDQHasher) computePDQImageDomainQualityMetric(buffer64x64 [][]float64) 
 		for j := 0; j < 64; j++ {
 			u := buffer64x64[i][j]
 			v := buffer64x64[i+1][j]
-			d := int(((u - v) * 100) / 255)
+			d := int(((u - v) * 100.0) / 255.0)
 			gradientSum += int(helpers.Abs(d))
 		}
 	}
@@ -301,15 +303,15 @@ func (p *PDQHasher) computePDQImageDomainQualityMetric(buffer64x64 [][]float64) 
 		for j := 0; j < 63; j++ {
 			u := buffer64x64[i][j]
 			v := buffer64x64[i][j+1]
-			d := int(((u - v) * 100) / 255)
+			d := int(((u - v) * 100.0) / 255.0)
 			gradientSum += int(helpers.Abs(d))
 		}
 	}
-	quality := int(gradientSum / 90)
+	quality := float64(gradientSum) / 90.0
 	if quality > 100 {
 		quality = 100
 	}
-	return quality
+	return int(quality)
 }
 
 /**
@@ -329,7 +331,7 @@ func (p *PDQHasher) dct64To16(A, T, B *([][]float64)) {
 		ti := make([]float64, 64)
 
 		for j := 0; j < 64; j++ {
-			tij := 0.0
+			tij := float64(0.0)
 			for k := 0; k < 64; k++ {
 				tij += D[i][k] * (*A)[k][j]
 			}
@@ -340,7 +342,7 @@ func (p *PDQHasher) dct64To16(A, T, B *([][]float64)) {
 
 	for i := 0; i < 16; i++ {
 		for j := 0; j < 16; j++ {
-			sumk := 0.0
+			sumk := float64(0.0)
 			for k := 0; k < 64; k++ {
 				sumk += (*T)[i][k] * D[j][k]
 			}
@@ -466,7 +468,8 @@ func (p *PDQHasher) pdqBuffer16x16ToBits(dctOutput16x16 [][]float64) *types.Hash
 
 // Round up.
 func (p *PDQHasher) computeJaroszWindowSize(dimension int) int {
-	return (dimension + PDQ_JAROSZ_WINDOW_SIZE_DIVISOR - 1) / PDQ_JAROSZ_WINDOW_SIZE_DIVISOR
+	result := (float64(dimension) + float64(PDQ_JAROSZ_WINDOW_SIZE_DIVISOR) - 1.0) / float64(PDQ_JAROSZ_WINDOW_SIZE_DIVISOR)
+	return int(result)
 }
 
 func (p *PDQHasher) jaroszFilterFloat(buffer1, buffer2 *[]float64, numRows, numCols, windowSizeAlongRows, windowSizeAlongCols, nreps int) {
@@ -477,7 +480,7 @@ func (p *PDQHasher) jaroszFilterFloat(buffer1, buffer2 *[]float64, numRows, numC
 }
 
 func (p *PDQHasher) box1DFloat(invec *[]float64, inStartOffset int, outvec *[]float64, outStartOffset, vectorLength, stride, fullWindowSize int) {
-	halfWindowSize := int((fullWindowSize + 2) / 2)
+	halfWindowSize := int(((float64(fullWindowSize) + 2.0) / 2.0))
 	phase_1_nreps := int(halfWindowSize - 1)
 	phase_2_nreps := int(fullWindowSize - halfWindowSize + 1)
 	phase_3_nreps := int(vectorLength - fullWindowSize)
@@ -485,7 +488,7 @@ func (p *PDQHasher) box1DFloat(invec *[]float64, inStartOffset int, outvec *[]fl
 	li := 0 // Index of left edge of read window, for subtracts
 	ri := 0 // Index of right edge of read windows, for adds
 	oi := 0 // Index of output vector
-	sum := 0.0
+	sum := float64(0.0)
 	currentWindowSize := 0
 
 	// PHASE 1: ACCUMULATE FIRST SUM NO WRITES

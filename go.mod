@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/chewxy/math32 v1.10.1
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
