@@ -17,18 +17,9 @@ import (
 func processFile(filename string, detailed bool) {
 	pdqhasher := pdq.NewPDQHasher()
 
-	// Find all image files in the folder
-	path, _ := filepath.Abs(filename)
-	items, err := os.ReadDir(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	numPDQHash := 0
 	var prevHash *types.Hash256
-
-	for _, item := range items {
-		fullPath := filepath.Join(path, item.Name())
+	filepath.Walk(filename, func(fullPath string, item os.FileInfo, err error) error {
 		if !item.IsDir() {
 			// Check if file is an image
 			filetypeRef, err := filetype.MatchFile(fullPath)
@@ -45,16 +36,17 @@ func processFile(filename string, detailed bool) {
 				}
 
 				if detailed {
-					log.Printf("hash=%s,norm=%d,delta=%d,quality=%d,filename=%s", hashAndQuality.Hash.String(), hashAndQuality.Hash.HammingNorm(), delta, hashAndQuality.Quality, item.Name())
+					log.Printf("hash=%s,norm=%d,delta=%d,quality=%d,filename=%s", hashAndQuality.Hash.String(), hashAndQuality.Hash.HammingNorm(), delta, hashAndQuality.Quality, fullPath)
 				} else {
-					log.Printf("%s,%d,%s", hashAndQuality.Hash.String(), hashAndQuality.Quality, item.Name())
+					log.Printf("%s,%d,%s", hashAndQuality.Hash.String(), hashAndQuality.Quality, fullPath)
 				}
 
 				prevHash = hashAndQuality.Hash
 				numPDQHash++
 			}
 		}
-	}
+		return nil
+	})
 }
 
 func main() {
