@@ -15,10 +15,6 @@ type Hash256 struct {
 	W [HASH256_NUM_SLOTS]int
 }
 
-func (h *Hash256) GetNumWords() int {
-	return HASH256_NUM_SLOTS
-}
-
 func (h *Hash256) Clone() Hash256 {
 	rv := Hash256{}
 	for i := 0; i < HASH256_NUM_SLOTS; i++ {
@@ -35,10 +31,6 @@ func (h *Hash256) String() string {
 	}
 
 	return strings.Join(result, "")
-}
-
-func (h *Hash256) ToHexString() string {
-	return h.String()
 }
 
 func Hash256FromHexString(s string) (*Hash256, error) {

@@ -19,3 +19,9 @@ func TestTorben(t *testing.T) {
 
 	assert.Equal(t, float64(1.07), Torben(m, numRows, numCols), "The Torben function should produce 1.07 for 3 rows and 8 cols")
 }
+
+func TestAbs(t *testing.T) {
+	assert.Equal(t, int(1), Abs(-1), "The absolute value of -1 should be 1")
+	assert.Equal(t, int(1), Abs(1), "The absolute value of 1 should be 1")
+	assert.Equal(t, int(0), Abs(0), "The absolute value of 0 should be 0")
+}

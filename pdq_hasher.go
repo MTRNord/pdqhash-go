@@ -182,7 +182,7 @@ func (p *PDQHasher) pdqHash256FromFloatLuma(fullBuffer1, fullBuffer2 []float64, 
 	return HashAndQuality{hash, quality}
 }
 
-func (p *PDQHasher) dihedralFromFile(filename string, dihedralFlags int) HashesAndQuality {
+func (p *PDQHasher) DihedralFromFile(filename string, dihedralFlags int) HashesAndQuality {
 	image, err := vips.NewImageFromFile(filename)
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
@@ -431,7 +431,7 @@ func (p *PDQHasher) dct16OriginalToFlipY(A, B *[][]float64) {
 func (p *PDQHasher) dct16OriginalToFlipPlus1(A, B *[][]float64) {
 	for i := 0; i < 16; i++ {
 		for j := 0; j < 16; j++ {
-			(*B)[i][j] = (*A)[i][j]
+			(*B)[j][i] = (*A)[i][j]
 		}
 	}
 }

@@ -15,12 +15,15 @@ import (
 
 // This is an example. It is not meant to be run in prod.
 
-func processFolder(filename string, detailed bool) {
+func processFolder(filename string, detailed bool) error {
 	pdqhasher := pdq.NewPDQHasher()
 
 	numPDQHash := 0
 	var prevHash *types.Hash256
-	filepath.Walk(filename, func(fullPath string, item os.FileInfo, err error) error {
+	err := filepath.Walk(filename, func(fullPath string, item os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		if !item.IsDir() {
 			// Check if file is an image
 			filetypeRef, err := filetype.MatchFile(fullPath)
@@ -48,6 +51,7 @@ func processFolder(filename string, detailed bool) {
 		}
 		return nil
 	})
+	return err
 }
 
 func processFile(filename string, detailed bool) {
@@ -100,6 +104,9 @@ func main() {
 	if !fileInfo.IsDir() {
 		processFile(folder, detailedOutput)
 	} else {
-		processFolder(folder, detailedOutput)
+		err := processFolder(folder, detailedOutput)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }

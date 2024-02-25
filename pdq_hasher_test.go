@@ -122,3 +122,28 @@ func TestPDQHasher(t *testing.T) {
 		assert.LessOrEqualf(t, hammingDistance, hammingTolerance, "Hamming distance is too high: %s", imagePath)
 	}
 }
+
+func TestPDQHasherDehidral(t *testing.T) {
+	vips.LoggingSettings(nil, vips.LogLevelMessage)
+	vips.Startup(&vips.Config{
+		ConcurrencyLevel: 0,
+		MaxCacheFiles:    5,
+		MaxCacheMem:      50 * 1024 * 1024,
+		MaxCacheSize:     100,
+		ReportLeaks:      false,
+		CacheTrace:       false,
+		CollectStats:     false,
+	})
+	defer vips.Shutdown()
+	pdqHasher := NewPDQHasher()
+	hashes := pdqHasher.DihedralFromFile("./test-images/reg-test-input/labelme-subset/q0004.jpg", PDQ_DO_DIH_ALL)
+
+	assert.Equal(t, hashes.hash.String(), "992d44af36d69e6ca6b812585928bac11def254ef5398c6d07466c9abcc65b92")
+	assert.Equal(t, hashes.hashRotate90.String(), "9b323dd22976484c939787013f096d1669874a21dab0d3dadef50f2560cf3e4f")
+	assert.Equal(t, hashes.hashRotate180.String(), "8c78ee05e38335c6f3edf8f28e7d106b48ba8fe4a06c16c71213c670e993f138")
+	assert.Equal(t, hashes.hashRotate270.String(), "c86783787c23e2e6c6c22dab685cc7bc3cd2608b8fe579708ba0a58f359a94e5")
+	assert.Equal(t, hashes.hashFlipX.String(), "d92dbb5036d62093a6b82da75928453e1defdab1f539439247469325bcc6a465")
+	assert.Equal(t, hashes.hashFlipY.String(), "8c3811fa6383ca39f3ed470d8e7def9448ba701ba06ce9381213398fe9930ecf")
+	assert.Equal(t, hashes.hashFlipPlus1.String(), "993242252966b7a3939778fe3d0982e9698735dadab02c25def4f0da60cfc1b0")
+	assert.Equal(t, hashes.hashFlipMinus1.String(), "ee676c877c231d19c6c2d2546a5c38433cd29f748fe5868f8ba15a70359a6b1a")
+}
