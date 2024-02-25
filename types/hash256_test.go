@@ -1,150 +1,105 @@
 package types
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const SAMPLE_HASH = "9c151c3af838278e3ef57c180c7d031c07aefd12f2ccc1e18f2a1e1c7d0ff163"
 
 func TestIncorrectHexLength(t *testing.T) {
 	_, err := Hash256FromHexString("AAA")
-	if !strings.HasPrefix(err.Error(), "incorrect hash length") {
-		t.Errorf("Incorrect error message: %s", err)
-	}
+	assert.ErrorContains(t, err, "incorrect hash length")
 }
 
 func TestIncorrectHexFormat(t *testing.T) {
 	_, err := Hash256FromHexString("9c151c3af838278e3ef57c180c7d031c07aefd12f2ccc1e18f2a1e1c7d0ff16!")
-	if !strings.HasPrefix(err.Error(), "incorrect format") {
-		t.Errorf("Incorrect error message: %s", err)
-	}
+	assert.ErrorContains(t, err, "incorrect format")
 }
 
 func TestCorrectHexFormat(t *testing.T) {
 	hash, err := Hash256FromHexString(SAMPLE_HASH)
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
-	if hash.String() != SAMPLE_HASH {
-		t.Errorf("Incorrect hash: %s", hash.String())
-	}
+	assert.ErrorIs(t, err, nil)
+
+	assert.Equal(t, SAMPLE_HASH, hash.String())
 }
 
 func TestClone(t *testing.T) {
 	hash, err := Hash256FromHexString(SAMPLE_HASH)
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.ErrorIs(t, err, nil)
+
 	clone := hash.Clone()
-	if clone.String() != SAMPLE_HASH {
-		t.Errorf("Incorrect hash: %s", clone.String())
-	}
-	if !hash.Eq(&clone) {
-		t.Errorf("Incorrect equality")
-	}
+	assert.Equal(t, SAMPLE_HASH, clone.String())
+
+	assert.True(t, hash.Eq(&clone))
 }
 
 func TestToString(t *testing.T) {
 	hash, err := Hash256FromHexString(SAMPLE_HASH)
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
-	if hash.String() != SAMPLE_HASH {
-		t.Errorf("Incorrect hash: %s", hash.String())
-	}
+	assert.ErrorIs(t, err, nil)
+
+	assert.Equal(t, SAMPLE_HASH, hash.String())
 }
 
 func TestBitCount(t *testing.T) {
-	if BitCount(1) != 1 {
-		t.Errorf("Incorrect bit count")
-	}
+	assert.Equal(t, 1, BitCount(1))
 
 	// dec(10) = bin(01100100)
-	if BitCount(100) != 3 {
-		t.Errorf("Incorrect bit count")
-	}
+	assert.Equal(t, 3, BitCount(100))
 }
 
 func TestHammingNorm(t *testing.T) {
 	hash := &Hash256{}
 	hash.SetAll()
-	if hash.HammingNorm() != 256 {
-		t.Errorf("Incorrect hamming norm")
-	}
+
+	assert.Equal(t, 256, hash.HammingNorm())
 
 	hash, err := Hash256FromHexString(SAMPLE_HASH)
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
-
-	if hash.HammingNorm() != 128 {
-		t.Errorf("Incorrect hamming norm")
-	}
+	assert.ErrorIs(t, err, nil)
+	assert.Equal(t, 128, hash.HammingNorm())
 }
 
 func TestHammingDistance(t *testing.T) {
 	hash1, err := Hash256FromHexString(SAMPLE_HASH)
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.ErrorIs(t, err, nil)
 
 	hash2 := Hash256{}
 	hash2.ClearAll()
 
-	if hash1.HammingDistance(&hash2) != 128 {
-		t.Errorf("Incorrect hamming distance")
-	}
+	assert.Equal(t, 128, hash1.HammingDistance(&hash2))
 
 	hash1 = &Hash256{}
 	hash1.SetAll()
 	hash2 = Hash256{}
 	hash2.ClearAll()
 
-	if hash1.HammingDistance(&hash2) != 256 {
-		t.Errorf("Incorrect hamming distance")
-	}
-	if hash1.HammingDistanceLE(&hash2, 1) {
-		t.Errorf("Incorrect hamming distance")
-	}
-	if !hash1.HammingDistanceLE(&hash2, 257) {
-		t.Errorf("Incorrect hamming distance")
-	}
-	if !hash1.HammingDistanceLE(hash1, 0) {
-		t.Errorf("Incorrect hamming distance")
-	}
+	assert.Equal(t, 256, hash1.HammingDistance(&hash2))
+	assert.False(t, hash1.HammingDistanceLE(&hash2, 1))
+	assert.True(t, hash1.HammingDistanceLE(&hash2, 257))
+	assert.True(t, hash1.HammingDistanceLE(hash1, 0))
 }
 
 func TestBinaryOperations(t *testing.T) {
 	hash, err := Hash256FromHexString(SAMPLE_HASH)
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.ErrorIs(t, err, nil)
 
 	result := hash.BitwiseAND(hash)
 	hash2 := &result
-	if !hash2.Eq(hash) {
-		t.Errorf("Incorrect AND")
-	}
+	assert.True(t, hash2.Eq(hash))
 
 	hashNegative := hash.BitwiseNOT()
 	result = hash.BitwiseAND(&hashNegative)
 	hash2 = &result
 	hash3 := &Hash256{}
-	if !hash2.Eq(hash3) {
-		t.Errorf("Incorrect NOT")
-	}
+	assert.True(t, hash2.Eq(hash3))
 
 	hash_set_all := &Hash256{}
 	hash_set_all.SetAll()
 
 	result = hash.BitwiseOR(&hashNegative)
-	if !result.Eq(hash_set_all) {
-		t.Errorf("Incorrect OR with SET ALL")
-	}
+	assert.True(t, result.Eq(hash_set_all))
 
 	result = hash.BitwiseXOR(&hashNegative)
-	if !result.Eq(hash_set_all) {
-		t.Errorf("Incorrect XOR with SET ALL")
-	}
+	assert.True(t, result.Eq(hash_set_all))
 }
