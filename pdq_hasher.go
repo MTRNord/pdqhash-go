@@ -164,7 +164,6 @@ func (p *PDQHasher) fillFloatLumaFromBufferImage(image *vips.ImageRef, luma *[]f
 			r := colorArray[0]
 			g := colorArray[1]
 			b := colorArray[2]
-			log.Println(r, g, b)
 			(*luma)[i*numCols+j] = LUMA_FROM_R_COEFF*float64(r) + LUMA_FROM_G_COEFF*float64(g) + LUMA_FROM_B_COEFF*float64(b)
 		}
 	}
