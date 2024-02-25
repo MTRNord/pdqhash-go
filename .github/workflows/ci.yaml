@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["windows-latest", "ubuntu-latest", "macOS-latest"]
+        os: ["ubuntu-latest", "macOS-latest"]
         go: ["1.22.x"]
     runs-on: ${{ matrix.os }}
     steps:
@@ -17,6 +17,10 @@ jobs:
     - uses: WillAbides/setup-go-faster@v1.14.0
       with:
         go-version: ${{ matrix.go }}
+    - run: sudo apt-get install -y libvips-dev
+      if: matrix.os == 'ubuntu-latest'
+    - run: brew install vips
+      if: matrix.os == 'macOS-latest'
     - run: "go test ./..."
     - run: "go vet ./..."
     - uses: dominikh/staticcheck-action@v1.2.0
