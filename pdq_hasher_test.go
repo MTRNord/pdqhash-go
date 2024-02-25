@@ -1,6 +1,7 @@
 package pdq
 
 import (
+	"os"
 	"testing"
 
 	"github.com/MTRNord/pdqhash-go/types"
@@ -11,6 +12,22 @@ import (
 type Pair struct {
 	First  string
 	Second string
+}
+
+func TestMain(m *testing.M) {
+	vips.LoggingSettings(nil, vips.LogLevelMessage)
+	vips.Startup(&vips.Config{
+		ConcurrencyLevel: 0,
+		MaxCacheFiles:    5,
+		MaxCacheMem:      50 * 1024 * 1024,
+		MaxCacheSize:     100,
+		ReportLeaks:      false,
+		CacheTrace:       false,
+		CollectStats:     false,
+	})
+	defer vips.Shutdown()
+
+	os.Exit(m.Run())
 }
 
 var DATA_ARRAY = [19]Pair{
@@ -93,17 +110,6 @@ var DATA_ARRAY = [19]Pair{
 }
 
 func TestPDQHasher(t *testing.T) {
-	vips.LoggingSettings(nil, vips.LogLevelMessage)
-	vips.Startup(&vips.Config{
-		ConcurrencyLevel: 0,
-		MaxCacheFiles:    5,
-		MaxCacheMem:      50 * 1024 * 1024,
-		MaxCacheSize:     100,
-		ReportLeaks:      false,
-		CacheTrace:       false,
-		CollectStats:     false,
-	})
-	defer vips.Shutdown()
 	pdqHasher := NewPDQHasher()
 	hammingTolerance := 16
 
@@ -124,17 +130,6 @@ func TestPDQHasher(t *testing.T) {
 }
 
 func TestPDQHasherDehidral(t *testing.T) {
-	vips.LoggingSettings(nil, vips.LogLevelMessage)
-	vips.Startup(&vips.Config{
-		ConcurrencyLevel: 0,
-		MaxCacheFiles:    5,
-		MaxCacheMem:      50 * 1024 * 1024,
-		MaxCacheSize:     100,
-		ReportLeaks:      false,
-		CacheTrace:       false,
-		CollectStats:     false,
-	})
-	defer vips.Shutdown()
 	pdqHasher := NewPDQHasher()
 	hashes := pdqHasher.DihedralFromFile("./test-images/reg-test-input/labelme-subset/q0004.jpg", PDQ_DO_DIH_ALL)
 
