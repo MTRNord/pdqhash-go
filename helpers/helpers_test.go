@@ -1,6 +1,10 @@
 package helpers
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestTorben(t *testing.T) {
 	numRows := 4
@@ -13,7 +17,5 @@ func TestTorben(t *testing.T) {
 		}
 	}
 
-	if Torben(m, numRows, numCols) != 1.07 {
-		t.Errorf("Incorrect median")
-	}
+	assert.Equal(t, 1.07, Torben(m, numRows, numCols), "The Torben function should produce 1.07 for 3 rows and 8 cols")
 }

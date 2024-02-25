@@ -21,8 +21,8 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
     - run: brew install vips
       if: matrix.os == 'macOS-latest'
-    - run: "go test ./..."
-    - run: go test -race -covermode=atomic -coverprofile=coverage.out
+    - run: go test ./... -race -covermode=atomic -coverprofile=coverage.out
+    - run: "go vet ./..."
     - uses: dominikh/staticcheck-action@v1.2.0
       with:
         install-go: false
