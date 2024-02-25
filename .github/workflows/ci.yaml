@@ -22,8 +22,11 @@ jobs:
     - run: brew install vips
       if: matrix.os == 'macOS-latest'
     - run: "go test ./..."
-    - run: "go vet ./..."
+    - run: go test -race -covermode=atomic -coverprofile=coverage.out
     - uses: dominikh/staticcheck-action@v1.2.0
       with:
         install-go: false
         cache-key: ${{ matrix.go }}
+    - name: Upload coverage reports to Codecov with GitHub Action
+      uses: codecov/codecov-action@v3
+
