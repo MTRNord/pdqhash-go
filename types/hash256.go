@@ -28,12 +28,10 @@ func (h *Hash256) Clone() Hash256 {
 }
 
 func (h *Hash256) String() string {
-	i := HASH256_NUM_SLOTS - 1
 	var result []string
 
-	for i >= 0 {
+	for i := HASH256_NUM_SLOTS - 1; i >= 0; i-- {
 		result = append(result, fmt.Sprintf("%04x", h.W[i]&0xFFFF))
-		i = i - 1
 	}
 
 	return strings.Join(result, "")
@@ -88,10 +86,9 @@ func (h *Hash256) SetAll() {
 
 func (h *Hash256) HammingNorm() int {
 	n := 0
-	i := 0
-	for i < HASH256_NUM_SLOTS {
+
+	for i := 0; i < HASH256_NUM_SLOTS; i++ {
 		n += h.HammingNorm16(h.W[i])
-		i += 1
 	}
 	return n
 }
@@ -158,8 +155,7 @@ func (h *Hash256) BitwiseNOT() Hash256 {
 func (h *Hash256) DumpBits() string {
 	var str []string
 
-	i := HASH256_NUM_SLOTS - 1
-	for i >= 0 {
+	for i := HASH256_NUM_SLOTS - 1; i >= 0; i-- {
 		word := h.W[i] & 0xFFFF
 		var bits []string
 		for j := 15; j >= 0; j-- {
@@ -170,7 +166,6 @@ func (h *Hash256) DumpBits() string {
 			}
 		}
 		str = append(str, strings.Join(bits, " "))
-		i--
 	}
 	return strings.Join(str, "\n")
 }
@@ -178,8 +173,7 @@ func (h *Hash256) DumpBits() string {
 func (h *Hash256) DumpBitsAcross() string {
 	var str []string
 
-	i := HASH256_NUM_SLOTS - 1
-	for i >= 0 {
+	for i := HASH256_NUM_SLOTS - 1; i >= 0; i-- {
 		word := h.W[i] & 0xFFFF
 		for j := 15; j >= 0; j-- {
 			if (word & (1 << uint(j))) != 0 {
@@ -188,7 +182,6 @@ func (h *Hash256) DumpBitsAcross() string {
 				str = append(str, "0")
 			}
 		}
-		i--
 	}
 	return strings.Join(str, " ")
 }

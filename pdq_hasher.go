@@ -180,8 +180,6 @@ func (p *PDQHasher) pdqHash256FromFloatLuma(fullBuffer1, fullBuffer2 []float64, 
 }
 
 func (p *PDQHasher) dihedralFromFile(filename string, dihedralFlags int) HashesAndQuality {
-	vips.Startup(nil)
-	defer vips.Shutdown()
 	image, err := vips.NewImageFromFile(filename)
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
@@ -489,46 +487,38 @@ func (p *PDQHasher) box1DFloat(invec *[]float64, inStartOffset int, outvec *[]fl
 	currentWindowSize := 0
 
 	// PHASE 1: ACCUMULATE FIRST SUM NO WRITES
-	i := 0
-	for i < phase_1_nreps {
+	for i := 0; i < phase_1_nreps; i++ {
 		sum += (*invec)[inStartOffset+ri]
 		currentWindowSize += 1
 		ri += stride
-		i += 1
 	}
 
 	// PHASE 2: INITIAL WRITES WITH SMALL WINDOW
-	i = 0
-	for i < phase_2_nreps {
+	for i := 0; i < phase_2_nreps; i++ {
 		sum += (*invec)[inStartOffset+ri]
 		currentWindowSize += 1
 		(*outvec)[outStartOffset+oi] = sum / float64(currentWindowSize)
 		ri += stride
 		oi += stride
-		i += 1
 	}
 
 	// PHASE 3: WRITES WITH FULL WINDOW
-	i = 0
-	for i < phase_3_nreps {
+	for i := 0; i < phase_3_nreps; i++ {
 		sum += (*invec)[inStartOffset+ri]
 		sum -= (*invec)[inStartOffset+li]
 		(*outvec)[outStartOffset+oi] = sum / float64(currentWindowSize)
 		li += stride
 		ri += stride
 		oi += stride
-		i += 1
 	}
 
 	// PHASE 4: FINAL WRITES WITH SMALL WINDOW
-	i = 0
-	for i < phase_4_nreps {
+	for i := 0; i < phase_4_nreps; i++ {
 		sum -= (*invec)[inStartOffset+li]
 		currentWindowSize -= 1
 		(*outvec)[outStartOffset+oi] = sum / float64(currentWindowSize)
 		li += stride
 		oi += stride
-		i += 1
 	}
 }
 
